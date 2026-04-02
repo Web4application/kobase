@@ -150,7 +150,7 @@ brew install autoconf automake bash binutils cmake coreutils findutils \
 ```
 
 You will also have to ensure Homebrew's findutils, gnu-getopt, make & util-linux are in your path, e.g., via
-```bashrpc
+```bashrc
 export PATH="$(brew --prefix)/opt/findutils/libexec/gnubin:$(brew --prefix)/opt/gnu-getopt/bin:$(brew --prefix)/opt/make/libexec/gnubin:$(brew --prefix)/opt/util-linux/bin:${PATH}"
 ```
 
@@ -159,8 +159,8 @@ Optional:
 brew install ccache luacheck p7zip shellcheck shfmt
 ```
 
-*Note:* You can override the default targeted minimum deployment version by setting `MACOSX_DEPLOYMENT_TARGET`:
-```.env
+*Note:* You can override the default targeted minimum deployment version by setting `MACOSX_DEPLOYMENT_TARGET`
+```bashrc
 export MACOSX_DEPLOYMENT_TARGET=10.09
 ```
 
@@ -169,7 +169,7 @@ export MACOSX_DEPLOYMENT_TARGET=10.09
 Ensure the [nix is installed](https://nixos.org/download/).
 
 Then simply run the included nix shell:
-```.nix
+```bash
 nix-shell tools/shell.nix
 ```
 
@@ -177,7 +177,7 @@ nix-shell tools/shell.nix
 
 Install the prerequisites using zypper:
 
-```jsonl
+```zypper
 sudo zypper install autoconf automake bash cmake find gcc gcc-32bit gcc-c++ gettext \
     gawk git libSDL3-0 libtool make meson nasm ninja patch pkgconf unzip wget
 ```
@@ -196,7 +196,7 @@ sudo apt install gcc15-devel
 ## Getting the source
 
 
-```
+```luajit
 git clone https://github.com/web4application/koreader-base.git
 cd koreader-base && ./kodev fetch-thirdparty
 # sudo apt-get install blockout2
@@ -271,7 +271,7 @@ To run unit tests:
 
 ```
 ./kodev test base
-./kodev test front
+./kodev test frontend
 ```
 
 To run a specific unit test (for test development):
@@ -297,7 +297,7 @@ NOTE: Extra dependencies for tests: `luacheck` from luarocks.
 Please refer to [l10n's README][l10n-readme] to grab the latest translations
 from [the KOReader project on Weblate][`koreader-weblate`]with this command:
 
-```gettext
+```.po
 make po
 ```
 `sudo service ssh --full-restart`
