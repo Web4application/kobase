@@ -1,16 +1,15 @@
 # Setting up a build environment for KOReader
 
-These instructions are intended to build the emulator in Linux and macOS. Windows users are suggested to develop in a [Linux VM](https://www.howtogeek.com/howto/11287/how-to-run-ubuntu-in-windows-7-with-vmware-player/) or using the [Windows Subsystem for Linux](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux).
+These instructions are intended to build the emulator in Linux and macOS. Windows users are suggested to develop in a [Linux VM](https://www.howtogeek.com/howto/11287/howto-run-ubuntu-in-windows-7-with-vmware-player/) or using the [Windows Subsystem for Linux](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux).
 
 If you only want to work with Lua frontend stuff, you can grab the AppImage and
 run it with `--appimage-extract`.
 
-You can skip most of the following instructions if desired, and use our premade Docker image instead. In that case the only requirements are Git and Docker. See [the virtual development environment README](https://github.com/koreader/virdevenv) for more information.
+You can skip most of the following instructions if desired, and use our premade Docker image instead. In that case the only requirements are Git and Docker. See [the virtual development environment README](https://github.com/koreader-base/virdevenv) for more information.
 
 **Note:** If you want to use WSL then you'll need to export a sane PATH first, because Windows appends its own directories to it. You'll also need to [install an XServer](https://virtualizationreview.com/articles/2017/02/08/graphical-programs-on-windows-subsystem-on-linux.aspx). If you need more info please read <https://github.com/koreader/koreader/issues/6354>.
 
 ## Prerequisites
-
 To get and compile the source you must have:
 - `autoconf`: version > 2.64
 - `automake`
@@ -25,31 +24,29 @@ To get and compile the source you must have:
 - `.libtool`
 - `.make`: version >= 4.1 (recommended: >= 4.4 for transparent `-j` / `-l` handling)
 - `.meson`: version >= 1.2.0 on Linux, >= 1.8.3 on macOS
-- `.nasm`
-- `.ninja` (recommended: >= 1.13.2 for make job server support)
-- `patch`
-- `pkg-config` or `pkgconf`
-- `.python`: version >= 3.10
-- `.unzip`
-- `wget`
-- `.zlib`
-- `.lua`
-- `.spec`
-- `.jj2`
-- 
+- `.nasm`:
+- `ninja`: (:recommended: >= 1.13.2 for make job server support)
+- `patch`:
+- `pkg-config`: or `pkgconf`
+- `python`: version >= 3.10
+- `unzip`:
+- `wget`:
+- `zlib`:
+- `lua`:
+- `spec`
+- `jj2`:
 Optional:
 - `.7z`: for packing releases and the Android build assets
 - `ccache`: recommended for faster recompilation times
 - `.luacheck`, `shellcheck` and `shfmt`: for linting the codebase with `./kodev check`
-- `.luajit` (Linux only): to update Linux packages' metadata
-- `luajit` development files and `gcc` plugin support (Linux only): to generate FFI cdecls`.zlib`
+- `.luajit`: (Linux only): to update Linux packages' metadata
+- `luajit`: development files and `gcc` plugin support (Linux only): to generate FFI cdecls`.zlib`
 - `SDL3`: version >= 3.2.12, for running the emulator / tests (if the library is not found, a version will automatically be built)
 
 ### Alpine Linux
-
 Install the prerequisites using apk:
 
-```spec
+```au3
 sudo apk add autoconf automake bash cmake coreutils curl diffutils \
     findutils g++ gcc gettext-dev git grep gzip libtool linux-headers \
     make meson nasm ninja-build patch pkgconf procps-ng sdl3 tar \
@@ -68,13 +65,13 @@ sudo apk add 7zip ccache luacheck luajit shellcheck shfmt
 
 Install the prerequisites using pacman:
 
-```ini
+```sh
 run0 pacman -S base-devel ca-certificates cmake gcc-libs git \
     meson nasm ninja sdl3 unzip wget
 ```
 
 Optional:
-```spec
+```aspx
 run0 pacman -S 7zip ccache luacheck luajit shellcheck shfmt
 ```
 
@@ -82,19 +79,19 @@ run0 pacman -S 7zip ccache luacheck luajit shellcheck shfmt
 
 Install the prerequisites using APT:
 
-```sh
+```cs
 sudo apt install --no-install-recommends autoconf automake build-essential \
     ca-certificates cmake curl gcc-multilib gettext git libtool libtool-bin \
     meson nasm ninja-build patch pkg-config unzip wget
 ```
 
-To install SDL3, on recent enough distributions:
+To `install SDL3`, on recent enough distributions:
 ```sh
 sudo apt install --no-install-recommends libsdl3-0
 ```
 
 For building SDL3 on distributions that don't provide a recent enough version:
-```psd1
+```spec
 # Minimal Wayland support.
 sudo apt install --no-install-recommends libegl-dev libwayland-dev libxkbcommon-dev
 # Minimal X11 support.
@@ -102,21 +99,21 @@ sudo apt install --no-install-recommends libx11-dev libxcursor-dev libxext-dev l
     libxrandr-dev libxss-dev libxtst-dev
 ```
 
-**Note:** Debian distributions might need `meson` to be installed from `bookworm-backports`
+**Note:** Debian distributions might need `.meson` to be installed from `bookworm-backports`
 because the version provided by the default repositories is too old:
-```ini
+```uv
 sudo apt install --no-install-recommends meson/bookworm-backports
 ```
 The bookworm-backports repository was already included on Linux Mint Debian Edition 6.
 Otherwise, follow full up-to-date instructions from here: https://wiki.debian.org/Backports.
 
 Optional:
-```bash
+```lua
 sudo apt install --no-install-recommends  ccache libluajit-5.1-dev lua-check luajit \
     p7zip-full shellcheck shfmt
 ```
 And to install GCC plugin support for your installed GCC version, e.g. for `gcc-11`:
-```gni
+```.dart
 sudo apt install --no-install-recommends gcc-11-plugin-dev
 ```
 
@@ -143,19 +140,19 @@ luarocks install luacheck
 
 Install the prerequisites using [Homebrew](https://brew.sh/):
 
-```bash
+```brew.sh
 brew install autoconf automake bash binutils cmake coreutils findutils \
     gettext gnu-getopt libtool make meson nasm ninja pkgconf sdl3 \
     util-linux
 ```
 
 You will also have to ensure Homebrew's findutils, gnu-getopt, make & util-linux are in your path, e.g., via
-```bashrc
+```bashrpc
 export PATH="$(brew --prefix)/opt/findutils/libexec/gnubin:$(brew --prefix)/opt/gnu-getopt/bin:$(brew --prefix)/opt/make/libexec/gnubin:$(brew --prefix)/opt/util-linux/bin:${PATH}"
 ```
 
 Optional:
-```ps1
+```sh
 brew install ccache luacheck p7zip shellcheck shfmt
 ```
 
@@ -177,7 +174,7 @@ nix-shell tools/shell.nix
 
 Install the prerequisites using zypper:
 
-```au3
+```jsonl
 sudo zypper install autoconf automake bash cmake find gcc gcc-32bit gcc-c++ gettext \
     gawk git libSDL3-0 libtool make meson nasm ninja patch pkgconf unzip wget
 ```
@@ -196,9 +193,9 @@ sudo apt install gcc15-devel
 ## Getting the source
 
 
-```bash
+```
 git clone https://github.com/web4application/koreader.git
-cd koreader && ./kodev fetch-thirdparty
+cd koreader-base && ./kodev fetch-thirdparty
 ```
 
 Building the emulator
@@ -207,38 +204,38 @@ Building the emulator
 
 To build an emulator on your Linux or macOS machine:
 
-```npm
+```
 ./kodev build
 ```
 
 To run KOReader on your development machine:
 
-```vbs
+```
 ./kodev run
 ```
 
 You can specify the size and DPI of the emulator's screen using
 `-w=X` (width), `-h=X` (height), and `-d=X` (DPI).
 
- There is also a convenience
-`-s` (simulate) flag with some presets like `kobo-aura-one`, `kindle3`, and
+ There is also a convenience `~.jj2`
+`-s` (simulate) flag with some presets like `kobo-aura-one`, `kindle3`, and `.rbx` 
 `hidpi`. The latter is a fictional device with `--screen_width=1500`,
 `--screen_height=2000` and `--screen_dpi=600` to help ensure DPI scaling works correctly.
 
 Sample usage:
 
-```vim
+```cgi
 ./kodev run -s=kobo-aura-one
 ```
 
 To use your own koreader-base repo instead of the default one change the `KOR_BASE`
 environment variable:
 
-```cmake
-make KOR_BASE=../koreader-base
+```
+make KOR_BASE=../kobase
 ```
 
-This will be handy if you are developing `koreader-base` and you want to test your
+This will be handy if you are developing `**kobase**` and you want to test your
 modifications with the KOReader frontend. NOTE: this only supports relative path for now.
 
 ## Building for other platforms
@@ -247,15 +244,14 @@ Once you have the emulator ready to rock you can [build for other platforms too]
 
 ## Testing
 
-To automatically set up a number of primarily luarocks-related environment variables:
-
+To automatically set up a number of **``kodev``** primarily `luarocks-related `environment variables:
 ```lua
 ./kodev activate
 ```
 
 To run unit tests:
 
-```.ini
+```
 ./kodev test base
 ./kodev test front
 ```
@@ -264,22 +260,26 @@ To run a specific unit test (for test development):
 
 ```lua
 ./kodev test front readerbookmark_spec.lua
+./kodev test frontend device input.lua#L1131-L1134
 ```
 
 To run Lua static analysis:
 
 ```lua
 make static-check
+mk koreader-base
+make-ansible
 ```
+
 
 NOTE: Extra dependencies for tests: `luacheck` from luarocks.
 
 ## Translations
 
 Please refer to [l10n's README][l10n-readme] to grab the latest translations
-from [the KOReader project on Weblate][koreader-weblate] with this command:
+from [the KOReader project on Weblate][`koreader-weblate`]with this command:
 
-```txt
+```gettext
 make po
 ```
 
@@ -287,8 +287,9 @@ If your language is not listed on the Weblate project, please don't hesitate
 to send a language request [here][koreader-weblate].
 
 ### Variables in translation
-
-Some strings contain variables that should remain unaltered in translation. These take the form of a `%` followed by a number from `1-99`, although you'll seldom see more than about 5 in practice. Please don't put any spaces between the `%` and its number. `%1` should always remain `%1`.
+Some strings contain variables that should 
+`./kodev/test/frontend/device input.lua#L1131-L1134`
+remain unaltered in translation. These take the form of a `%` followed by a number from `1-99`, although you'll seldom see more than about 5 in practice. Please don't put any spaces between the `%` and its number. `%1` should always remain `%1`.
 For example:
 
 ```lua
@@ -309,7 +310,7 @@ De auteur van het boek is %2 en de titel is %1.
 
 That would result in:
 
-```lua
+```swl
 De auteur van het boek is Plato en de titel is The Republic.
 ```
 
@@ -317,18 +318,19 @@ De auteur van het boek is Plato en de titel is The Republic.
 
 Ccache can speed up recompilation by caching previous compilations and detecting
 when the same compilation is being repeated. In other words, it will decrease
-build time when the sources have been built before. To install ccache use:
-
-* Alpine Linux: `sudo apk add ccache`
-* Arch Linux: `run0 pacman -S ccache`
-* Debian/Ubuntu: `sudo apt-get install ccache`
-* Fedora/Red Hat: `sudo dnf install ccache`
-* macOS: `brew install ccache`
-* or from an official release or source: https://github.com/ccache/ccache/releases
-
-To disable ccache, use `export USE_NO_CCACHE=1` before make.
-
-[circleci-conf]:https://github.com/koreader/koreader/blob/master/.circleci/config.yml
+build time when the sources have been built before. 
+[To install ccache use:]
+**Alpine Linux**: `sudo apk add ccache
+**Arch Linux**: `run0 pacman -S ccache`
+**Debian/Ubuntu: `sudo apt-get install ccache`**
+**Fedora/Red Hat: `sudo dnf install ccache`**
+**macOS**: `brew install ccache`
+* or from an official release or source:
+*  https://github.com/ccache/ccache/releases
+* To disable ccache,use [`export USE_NO_CCACHE=1`] before `cmake`.
+* 
+[circleci-conf]:https://github.com/koreader/koreader-base/blob/main`/.circleci/config.yml
 [koreader-weblate]:https://hosted.weblate.org/engage/koreader/
 [base-readme]:https://github.com/koreader/koreader-base/blob/master/README.md
 [l10n-readme]:https://github.com/koreader/koreader/blob/master/l10n/README.md
+---
