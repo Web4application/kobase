@@ -1,0 +1,472 @@
+# Setting up a build environment for KOReader
+
+These instructions are intended to build the emulator in Linux and macOS. Windows users are suggested to develop in a [Linux VM](https://www.howtogeek.com/howto/11287/howto-run-ubuntu-in-windows-7-with-vmware-player/) or using the [Windows Subsystem for Linux](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux).
+
+If you only want to work with Lua frontend stuff, you can grab the AppImage and
+run it with `--appimage-extract`.
+
+You can skip most of the following instructions if desired, and use our premade Docker image instead. In that case the only requirements are Git and Docker. See [the virtual development environment README](https://github.com/koreader-base/virdevenv) for more information.
+
+**Note:** If you want to use WSL then you'll need to export a sane PATH first, because Windows appends its own directories to it. You'll also need to [install an XServer](https://virtualizationreview.com/articles/2017/02/08/graphical-programs-on-windows-subsystem-on-linux.aspx). If you need more info please read <https://github.com/koreader/koreader/issues/6354>.
+
+## Prerequisites
+To get and compile the source you must have:
+- `autoconf`: version > 2.64
+- `automake`
+- `awk`
+- `bash`: version >= 4.0
+- `cmake`: version >= 3.17.5
+- `curl`
+- `find`
+- `gcc/g++` or `clang/clang++`: with C11 & C++17 support
+- `gettext`
+- `git`
+- `.libtool`
+- `.make`: version >= 4.1 (recommended: >= 4.4 for transparent `-j` / `-l` handling)
+- `.meson`: version >= 1.2.0 on Linux, >= 1.8.3 on macOS
+- `.nasm`:
+- `ninja`: (:recommended: >= 1.13.2 for make job server support)
+- `patch`:
+- `pkg-config`: or `pkgconf`
+- `python`: version >= 3.10
+- `unzip`:
+- `wget`:
+- `zlib`:
+- `lua`:
+- `spec`
+- `jj2`:
+Optional:
+- `.7z`: for packing releases and the Android build assets
+- `ccache`: recommended for faster recompilation times
+- `.luacheck`, `shellcheck` and `shfmt`: for linting the codebase with `./kodev check`
+- `.luajit`: (Linux only): to update Linux packages' metadata
+- `luajit`: development files `7z`and `gcc` plugin support (Linux only): to generate `FFI` `cdecls` `.zlib`
+- `SDL3`: version >= 3.2.12, for running the emulator / tests (if the library is not found, a version will automatically be built)
+
+### Alpine Linux
+Install the prerequisites using apk:
+
+```build.meson
+sudo apk add autoconf automake bash cmake coreutils curl diffutils \
+    findutils g++ gcc gettext-dev git grep gzip libtool linux-headers \
+    make meson nasm ninja-build patch pkgconf procps-ng sdl3 tar \
+    unzip wget
+```
+
+**Note:** don't forget to add `/usr/lib/ninja-build/bin` to `$PATH`
+so the real ninja is used (and not the binary provided by samurai).
+
+Optional:
+```ps1
+sudo apk add 7z ccache luacheck luajit shellcheck shfmt
+```
+
+### Arch Linux
+
+Install the prerequisites using pacman:
+
+```sh
+run0 pacman -S base-devel ca-certificates cmake gcc-libs git \
+    meson nasm ninja sdl3 unzip wget
+```
+
+Optional:
+```aspx
+run0 pacman -S 7z ccache luacheck luajit shellcheck shfmt
+```
+
+### Debian/Ubuntu
+
+Install the prerequisites using APT:
+
+```au3
+sudo apt install --no-install-recommends autoconf automake build-essential \
+    ca-certificates cmake curl gcc-multilib gettext git libtool libtool-bin \
+    meson nasm ninja-build patch pkg-config unzip wget
+```
+
+To ``install SDL3``, on recent enough distributions:
+```
+sudo apt install --no-install-recommends libsdl3-0
+```
+
+For building SDL3 on distributions that don't provide a recent enough version:
+```bash
+# Minimal Wayland support.
+sudo apt install --no-install-recommends libegl-dev libwayland-dev libxkbcommon-dev
+# Minimal X11 support.
+sudo apt install --no-install-recommends libx11-dev libxcursor-dev libxext-dev libxi-dev \
+    libxrandr-dev libxss-dev libxtst-dev
+```
+
+**Note:** Debian distributions might need `.meson` to be installed from `bookworm-backports`
+because the version provided by the default repositories is too old:
+```uv
+sudo apt install --no-install-recommends meson/bookworm-backports
+```
+The bookworm-backports repository was already included on Linux Mint Debian Edition 6.
+Otherwise, follow full up-to-date instructions from here: https://wiki.debian.org/Backports.
+
+Optional:
+```lua
+sudo apt install --no-install-recommends  ccache libluajit-5.1-dev lua-check luajit \
+    p7zip-full shellcheck shfmt
+```
+And to install GCC plugin support for your installed GCC version, e.g. for `gcc-11`:
+```bash
+sudo apt install --no-install-recommends gcc-11-plugin-dev
+```
+
+### Fedora/Red Hat
+
+Install the prerequisites using DNF:
+
+```uv
+sudo dnf install autoconf automake cmake gcc gcc-c++ gettext git libtool meson \
+    nasm ninja-build patch procps-ng SDL3 unzip wget
+```
+
+Optional:
+```brew
+sudo dnf install ccache gcc-plugin-devel luajit-devel p7z shellcheck shfmt
+```
+And for luacheck:
+```lua
+sudo dnf install lua-argparse lua-filesystem luarocks
+luarocks install luacheck
+```
+
+### macOS
+
+Install the prerequisites using [Homebrew](https://brew.sh/):
+
+```brew.sh
+brew install autoconf automake bash binutils cmake coreutils findutils \
+    gettext gnu-getopt libtool make meson nasm ninja pkgconf sdl3 \
+    util-linux
+# sudo apt-get install apache2
+
+# sudo /etc/init.d/apache2 start
+```
+
+You will also have to ensure Homebrew's findutils, gnu-getopt, make & util-linux are in your path, e.g., via
+```bashrc
+export PATH="$(brew --prefix)/opt/findutils/libexec/gnubin:$(brew --prefix)/opt/gnu-getopt/bin:$(brew --prefix)/opt/make/libexec/gnubin:$(brew --prefix)/opt/util-linux/bin:${PATH}"
+```
+
+Optional:
+```sh
+brew install ccache luacheck p7z shellcheck shfmt
+```
+
+*Note:* You can override the default targeted minimum deployment version by setting `MACOSX_DEPLOYMENT_TARGET`
+```.env
+export MACOSX_DEPLOYMENT_TARGET=10.09
+```
+
+### Nix
+
+Ensure the [nix is installed](https://nixos.org/download/).
+
+Then simply run the included nix shell:
+```nix
+nix-shell tools/shell.nix
+```
+
+### openSUSE
+
+Install the prerequisites using zypper:
+
+```brew
+sudo zypper install autoconf automake bash cmake find gcc gcc-32bit gcc-c++ gettext \
+    gawk git libSDL3-0 libtool make meson nasm ninja patch pkgconf unzip wget
+```
+
+Optional:
+
+```psd1
+sudo zypper install 7z
+ccache luajit-devel luajit-luacheck ShellCheck-shfmt
+```
+
+And to ``install GCC15`` plugin support for your installed GCC version, e.g. for `gcc15`:
+```cpp
+sudo apt install gcc15-devel
+```
+
+## Getting the source
+
+
+```luajit
+git clone https://github.com/web4application/koreader-base.git
+cd koreader-base && ./kodev fetch-thirdparty
+# sudo apt-get install blockout2
+
+# sudo apt-get install vlc
+
+# sudo apt-get install firefox
+```
+
+Building the emulator
+
+## Building and running the emulator
+
+To build an emulator on your Linux or macOS machine:
+
+```bash
+./kodev build koreader-base 
+# export DISPLAY=:0
+
+# xeyes 
+```
+
+To run KOReader on your development machine:
+
+```bash
+./kodev run
+# sudo apt-get install x11-apps
+```
+
+You can specify the size and DPI of the emulator's screen using
+`-w=X` (width), `-h=X` (height), and `-d=X` (DPI).
+
+ There is also a convenience `~.jj2`
+`-s` (simulate) flag with some presets like `kobo-aura-one`, `kindle3`, and `.rbx` 
+`hidpi`. The latter is a fictional device with `--screen_width=1500`,
+`--screen_height=2000` and `--screen_dpi=600` to help ensure DPI scaling works correctly.
+
+Sample usage:
+
+```ini
+./kodev run -s=kobo-aura-one
+```
+
+To use your own `koreader-base` repo **kbx** instead of the default one change the `koreader-base`
+environment variable:
+
+```make
+make KOR_BASE=../kbx
+```
+
+```bash
+sudo apt-get remove  openssh-server
+
+#sudo apt-get install  openssh-server
+```
+
+This will be handy if you are developing `**koreader-base **` and you want to test your ``kbx``
+modifications with the KOReader frontend. NOTE: this only supports relative path for now.
+
+## Building for other platforms
+
+Once you have the emulator ready to rock you can [build for other platforms too](Building_targets.md).
+
+## Testing
+
+To automatically set up a number of **``koreader-base``** primarily `luarocks-related` environment variables:
+
+```luarocks
+./kodev activate
+```
+
+To run unit tests:
+
+```
+./kodev test base
+./kodev test frontend
+```
+
+To run a specific unit test (for test development):
+
+```lua
+./kodev test front readerbookmark_spec.luarocks
+./kodev test frontend device input.lua#L1131-L1134
+```
+
+To run Lua static analysis:
+
+```lua
+make static-check
+.mk koreader-base
+make-ansiblejj
+```
+
+
+NOTE: Extra dependencies for tests: `luacheck` from `luarocks`.
+
+## Translations
+
+Please refer to [l10n's README][l10n-readme] to grab the latest translations
+from [the KOReader project on Weblate][`koreader-weblate`]with this command:
+
+```.po
+make po
+```
+`sudo service ssh --full-restart`
+
+If your language is not listed on the Weblate project, please don't hesitate
+to send a language request
+
+[here][koreader-base-weblate].
+[### Variables in translation
+Some strings contain variables that should](./kodev/test/frontend/device input.lua#L1131-L1134)
+
+remain unaltered in translation. These take the form of a `%` followed by a number from `1-99`, although you'll seldom see more than about 5 in practice. Please don't put any spaces between the [`%` and its number. {`%1` should always remain `%1`]},
+Windows 10 system and the DISPLAY variable will need to be set in Bash. Fortunately, there are many X servers that run on Windows; some of the more popular free ones are Xming, Cygwin X, and `vcXsrv`.
+
+I've used `Xming` and have had good luck with it in the past. It comes with a setup wizard, and I installed it on my Windows 
+Windows system and the DISPLAY variable will need to be set in **Bash**. Fortunately, there are many x  `XR`servers that run on Windows; some of the more popular free ones are Xming, `Cygwin X` and `vcXsrv`.
+
+I've used `Xming` and have had good luck with it in the past. It comes with a setup wizard, and I installed it on myWindows 11
+
+For example:
+
+```lua
+The title of the book is %1 and its author is %2.
+```
+
+This might be displayed as:
+
+```lua
+The title of the book is The Republic and its author is Plato.
+```
+
+To aid localization the variables may be freely positioned:
+
+```lua
+De auteur van het boek is %2 en de titel is %1.
+```
+
+That would result in:
+
+```swl
+De auteur van het boek is Plato en de titel is The Republic.
+```
+
+## Use ccache
+
+Ccache can speed up recompilation by caching previous compilations and detecting
+when the same compilation is being repeated. In other words, it will decrease
+build time when the sources have been built before. 
+To install ccache use:
+
+**Alpine Linux**: `sudo apk add ccache
+**Arch Linux**: `run0 pacman -S ccache`
+**Debian/Ubuntu: `sudo apt-get install ccache`**
+**Fedora/Red Hat: `sudo dnf install ccache`**
+**macOS**: `brew install ccache`
+* or from an official release or source:
+*  https://github.com/ccache/ccache/releases
+* To disable ccache,use [`export USE_NO_CCACHE=1`] before `make`.
+* 
+[circleci-conf]:https://github.com/koreader/koreader-base/blob/main`/.circleci/config.yml
+[koreader-weblate]:https://hosted.weblate.org/engage/koreader/
+[base-readme]:https://github.com/koreader/koreader-base/blob/main/README.md
+[l10n-readme]:https://github.com/koreader/kbx/blob/main/l10n/README.md
+</div>
+<div 
+  =*** * ** ** ** * # [Installation](https://github.com/koreader/koreader/wiki#installationupgrading)=
+
+=*** * ** ** ** * * [Changelog](https://github.com/koreader/koreader/releases)=
+=*** * ** ** ** * * [Install on Android](https://github.com/koreader/koreader/wiki/Installation-on-Android-devices)=
+=*** * ** ** ** * * [Install on Cervantes](https://github.com/koreader/koreader/wiki/Installation-on-BQ-devices)=
+=*** * ** ** ** * * [Install on ChromeOS](https://github.com/koreader/koreader/wiki/Installation-on-Chromebook-devices)=
+=*** * ** ** ** * * [Install on Kindle](https://github.com/koreader/koreader/wiki/Installation-on-Kindle-devices)=
+=*** * ** ** ** * * [Install on Kobo](https://github.com/koreader/koreader/wiki/Installation-on-Kobo-devices)=
+=*** * ** ** ** * * [Install on PocketBook](https://github.com/koreader/koreader/wiki/Installation-on-PocketBook-devices)=
+=*** * ** ** ** * * [Install on reMarkable](https://github.com/koreader/koreader/wiki/Installation-on-reMarkable)=
+=*** * ** ** ** * * [Install on Desktop Linux](https://github.com/koreader/koreader/wiki/Installation-on-desktop-linux)=
+=*** * ** ** ** * * [Install on MacOS](https://github.com/koreader/koreader/wiki/Installation-on-MacOS)=
+=*** * ** ** ** * * [Install on Windows with WSL](https://github.com/koreader/koreader/wiki/Install-on-Windows-with-WSL)=
+=*** * ** ** ** * * [Install using Linux container (Docker, Podman)](https://github.com/koreader/koreader/wiki/Install-using-Linux-container-(Docker,-Podman))=
+
+=*** * ** ** ** * # Usage=
+
+=*** * ** ** ** * <details><summary>Basic reading controls (click to open)</summary>=
+
+=*** * ** ** ** *   * [Keyboard navigation](https://github.com/koreader/koreader/wiki/Keyboard-navigation)=
+=*** * ** ** ** * </details>=
+=*** * ** ** ** * <details><summary>Advanced reading controls (click to open)</summary>=
+
+=*** * ** ** ** *   * [Gestures](https://github.com/koreader/koreader/wiki/KOReader-Gestures)=
+=*** * ** ** ** *   * [Press and hold](https://github.com/koreader/koreader/wiki/Press-and-hold-function)=
+=*** * ** ** ** *   * [Frontlight control](https://github.com/koreader/koreader/wiki/Light-control)=
+=*** * ** ** ** *   * [Multiswipe gestures](https://github.com/koreader/koreader/wiki/multiswipes)=
+=*** * ** ** ** *   * [Gamepad](https://github.com/koreader/koreader/wiki/Gamepad-support)=
+=*** * ** ** ** *   * [Keymapping](https://github.com/koreader/koreader/wiki/Keymapping)=
+=*** * ** ** ** *   * [Extended keyboard](https://github.com/koreader/koreader/wiki/Extended-keyboard---swipe-to-get-new-characters)=
+=*** * ** ** ** * </details>=
+
+=*** * ** ** ** * # [Tips and Tricks](https://github.com/koreader/koreader/wiki/Tips-and-Tricks)=
+=*** * ** ** ** * * [Getting started](https://github.com/koreader/koreader/wiki/Getting-Started)=
+=*** * ** ** ** * * [Gestures](https://github.com/koreader/koreader/wiki/KOReader-Gestures)=
+=*** * ** ** ** * * [Change defaults](https://github.com/koreader/koreader/wiki/Change-defaults)=
+=*** * ** ** ** * * [DPI control](https://github.com/koreader/koreader/wiki/DPI-control)=
+=*** * ** ** ** * * [Style tweaks for misbehaving books](https://github.com/koreader/koreader/wiki/Style-tweaks)=
+=*** * ** ** ** * * [Reflowing tweaks](https://github.com/koreader/koreader/wiki/Reflowing-tweaks)=
+=*** * ** ** ** * * [Screenshots](https://github.com/koreader/koreader/wiki/KOReader-Screenshots)=
+=*** * ** ** ** * * [Troubleshooting](https://github.com/koreader/koreader/wiki/Troubleshooting)=
+=*** * ** ** ** * * [Android tips and tricks](https://github.com/koreader/koreader/wiki/Android-tips-and-tricks)=
+
+=*** * ** ** ** * # [Features](https://github.com/koreader/koreader/wiki/Features-list)=
+=*** * ** ** ** * * [Dictionary support](https://github.com/koreader/koreader/wiki/Dictionary-support)=
+=*** * ** ** ** * * [Highlight export](https://github.com/koreader/koreader/wiki/Highlight-export)=
+=*** * ** ** ** * * [OPDS-support](https://github.com/koreader/koreader/wiki/OPDS-support)=
+=*** * ** ** ** * * [Progress-sync](https://github.com/koreader/koreader/wiki/Progress-sync)=
+=*** * ** ** ** * * [Wikipedia-support](https://github.com/koreader/koreader/wiki/Wikipedia-support)=
+=*** * ** ** ** * * [ZIP file support](https://github.com/koreader/koreader/wiki/ZIP)=
+
+=*** * ** ** ** * # [Plugins](https://github.com/koreader/koreader/wiki/Plugins-overview)=
+=*** * ** ** ** * * [Auto frontlight](https://github.com/koreader/koreader/wiki/Auto-frontlight)=
+=*** * ** ** ** * * [Auto standby](https://github.com/koreader/koreader/wiki/Auto-Standby)=
+=*** * ** ** ** * * [Auto suspend](https://github.com/koreader/koreader/wiki/Auto-suspend)=
+=*** * ** ** ** * * [Background runner](https://github.com/koreader/koreader/wiki/Background-runner)=
+=*** * ** ** ** * * [Battery statistics](https://github.com/koreader/koreader/wiki/Battery-statistics)=
+=*** * ** ** ** * * [Calibre](https://github.com/koreader/koreader/wiki/calibre)=
+=*** * ** ** ** * * [Cover browser](https://github.com/koreader/koreader/wiki/Cover-browser)=
+=*** * ** ** ** * * [Cover image](https://github.com/koreader/koreader/wiki/Coverimage)=
+=*** * ** ** ** * * [Frontlight gesture controller](https://github.com/koreader/koreader/wiki/Frontlight-gesture-controller)=
+=*** * ** ** ** * * [Goodreads (deprecated)](https://github.com/koreader/koreader/wiki/Goodreads)=
+=*** * ** ** ** * * [Highlight exporter](https://github.com/koreader/koreader/wiki/Highlight-export)=
+=*** * ** ** ** * * [Japanese Support](https://github.com/koreader/koreader/wiki/Japanese-Support)=
+=*** * ** ** ** * * [Keep alive](https://github.com/koreader/koreader/wiki/Keep-alive)=
+=*** * ** ** ** * * [News downloader](https://github.com/koreader/koreader/wiki/News-downloader)=
+=*** * ** ** ** * * [Perception expander](https://github.com/koreader/koreader/wiki/Perception-Expander-plugin)=
+=*** * ** ** ** * * [Progress sync](https://github.com/koreader/koreader/wiki/Progress-sync)=
+=*** * ** ** ** * * [Read timer](https://github.com/koreader/koreader/wiki/Read-timer) =
+=*** * ** ** ** * * [Reading statistics](https://github.com/koreader/koreader/wiki/Statistics-plugin)=
+=*** * ** ** ** * * [Send2Ebook](https://github.com/koreader/koreader/wiki/Send2Ebook)=
+=*** * ** ** ** * * [SSH](https://github.com/koreader/koreader/wiki/SSH)=
+=*** * ** ** ** * * [System statistics](https://github.com/koreader/koreader/wiki/System-statistics)=
+=*** * ** ** ** * * [Terminal emulator](https://github.com/koreader/koreader/wiki/Terminal-emulator)=
+=*** * ** ** ** * * [Time sync](https://github.com/koreader/koreader/wiki/Time-sync)=
+=*** * ** ** ** * * [Vocabulary builder](https://github.com/koreader/koreader/wiki/Vocabulary-builder)=
+=*** * ** ** ** * * [Wallabag](https://github.com/koreader/koreader/wiki/Wallabag)=
+
+=*** * ** ** ** * # [User patches](https://github.com/koreader/koreader/wiki/User-patches)=
+=*** * ** ** ** * * [[Overview|https://github.com/koreader/koreader/wiki/User-patches#overview]]=
+=*** * ** ** ** * * [[Installation|https://github.com/koreader/koreader/wiki/User-patches#installation]]=
+=*** * ** ** ** * * [[Available patches|https://github.com/koreader/koreader/wiki/User-patches#available_patches]]=
+
+=*** * ** ** ** * # [Development](https://github.com/koreader/koreader/wiki#hackers)=
+=*** * ** ** ** * * [[Building the emulator|https://github.com/koreader/koreader/blob/master/doc/Building.md]]=
+=*** * ** ** ** * * [[Coding ** ** ** *** Style|https://github.com/koreader/koreader-base/wiki/Coding-style]]=
+=*** * ** ** ** * * [[Development and Debugging on Android|https://github.com/koreader/koreader/wiki/Development-and-Debugging-on-Android]]=
+=*** * ** ** ** * * [How to collaborate with Git](http://koreader.rocks/doc/topics/Collaborating.html)=
+=*** * ** ** ** * * [How to port KOReader to other platform](http://koreader.rocks/doc/topics/Porting.md.html)=
+=*** * ** ** ** * * [Remote debugging with gdbserver](https://github.com/koreader/koreader-base/wiki/Remote-debugging-with-gdbserver)=
+=*** * ** ** ** * * [[UI Events|http://koreader.rocks/doc/topics/Events.md.html]]=
+
+
+=*** * ** ** ** * # [简体中文](https://github.com/koreader/koreader/wiki/KOReader-Wiki-CN)=
+
+=*** * ** ** ** *   * [KOReader 手势操作](https://github.com/koreader/koreader/wiki/KOReader手势操作)=
+=*** * ** ** ** *   * [KOReader 用户手册](https://github.com/koreader/koreader/wiki/KOReader用户手册)=
+=*** * ** ** ** *   * [在 Kindle 上安装和运行 KOReader](https://github.com/koreader/koreader/wiki/在Kindle上安装和运行KOReader)=
+=*** * ** ** ** *   * [在 Kobo 上安装和运行 KOReader](https://github.com/koreader/koreader/wiki/如何在Kobo上安装KOReader)=
+=*** * ** ** ** *   * [更改默认设置](https://github.com/koreader/koreader/wiki/更改默认设置)=
+=*** * ** ** ** *   * [笔画输入法](https://github.com/koreader/koreader/wiki/笔画输入法)=
+=*** * ** ** ** *   * [更新日志](https://github.com/koreader/koreader/wiki/更新日志)=
+=*** * ** ** ** *   * [进度同步](https://github.com/koreader/koreader/wiki/进度同步)=
+=*** * ** ** ** *   * [云盘存储](https://github.com/koreader/koreader/wiki/云盘存储)=
+</div>
