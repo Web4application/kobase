@@ -345,7 +345,8 @@ De auteur van het boek is Plato en de titel is The Republic.
 Ccache can speed up recompilation by caching previous compilations and detecting
 when the same compilation is being repeated. In other words, it will decrease
 build time when the sources have been built before. 
-[To install ccache use:]
+To install ccache use:
+
 **Alpine Linux**: `sudo apk add ccache
 **Arch Linux**: `run0 pacman -S ccache`
 **Debian/Ubuntu: `sudo apt-get install ccache`**
@@ -353,10 +354,9 @@ build time when the sources have been built before.
 **macOS**: `brew install ccache`
 * or from an official release or source:
 *  https://github.com/ccache/ccache/releases
-* To disable ccache,use [`export USE_NO_CCACHE=1`] before `cmake`.
+* To disable ccache,use [`export USE_NO_CCACHE=1`] before `make`.
 * 
 [circleci-conf]:https://github.com/koreader/koreader-base/blob/main`/.circleci/config.yml
 [koreader-weblate]:https://hosted.weblate.org/engage/koreader/
 [base-readme]:https://github.com/koreader/koreader-base/blob/master/README.md
-[l10n-readme]:https://github.com/koreader/koreader/blob/master/l10n/README.md
----
+[l10n-readme]:https://github.com/koreader/kbx/blob/main/l10n/README.md
