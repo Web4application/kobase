@@ -144,6 +144,9 @@ Install the prerequisites using [Homebrew](https://brew.sh/):
 brew install autoconf automake bash binutils cmake coreutils findutils \
     gettext gnu-getopt libtool make meson nasm ninja pkgconf sdl3 \
     util-linux
+# sudo apt-get install apache2
+
+# sudo /etc/init.d/apache2 start
 ```
 
 You will also have to ensure Homebrew's findutils, gnu-getopt, make & util-linux are in your path, e.g., via
@@ -194,8 +197,13 @@ sudo apt install gcc15-devel
 
 
 ```
-git clone https://github.com/web4application/koreader.git
+git clone https://github.com/web4application/koreader-base.git
 cd koreader-base && ./kodev fetch-thirdparty
+# sudo apt-get install blockout2
+
+# sudo apt-get install vlc
+
+# sudo apt-get install firefox
 ```
 
 Building the emulator
@@ -204,14 +212,18 @@ Building the emulator
 
 To build an emulator on your Linux or macOS machine:
 
-```
+```bash
 ./kodev build
+# export DISPLAY=:0
+
+# xeyes 
 ```
 
 To run KOReader on your development machine:
 
-```
+```bash
 ./kodev run
+# sudo apt-get install x11-apps
 ```
 
 You can specify the size and DPI of the emulator's screen using
@@ -228,14 +240,20 @@ Sample usage:
 ./kodev run -s=kobo-aura-one
 ```
 
-To use your own koreader-base repo instead of the default one change the `KOR_BASE`
+To use your own `koreader-base` repo **kbx** instead of the default one change the `KOR_BASE`
 environment variable:
 
-```
-make KOR_BASE=../kobase
+```make
+make KOR_BASE=../kbx
 ```
 
-This will be handy if you are developing `**kobase**` and you want to test your
+```bash
+sudo apt-get remove  openssh-server
+
+#sudo apt-get install  openssh-server
+```
+
+This will be handy if you are developing `**kbx**` and you want to test your
 modifications with the KOReader frontend. NOTE: this only supports relative path for now.
 
 ## Building for other platforms
@@ -244,7 +262,7 @@ Once you have the emulator ready to rock you can [build for other platforms too]
 
 ## Testing
 
-To automatically set up a number of **``kodev``** primarily `luarocks-related `environment variables:
+To automatically set up a number of **``kbx``** primarily `luarocks-related `environment variables:
 ```lua
 ./kodev activate
 ```
@@ -282,6 +300,7 @@ from [the KOReader project on Weblate][`koreader-weblate`]with this command:
 ```gettext
 make po
 ```
+`sudo service ssh --full-restart`
 
 If your language is not listed on the Weblate project, please don't hesitate
 to send a language request [here][koreader-weblate].
@@ -289,7 +308,14 @@ to send a language request [here][koreader-weblate].
 ### Variables in translation
 Some strings contain variables that should 
 `./kodev/test/frontend/device input.lua#L1131-L1134`
-remain unaltered in translation. These take the form of a `%` followed by a number from `1-99`, although you'll seldom see more than about 5 in practice. Please don't put any spaces between the `%` and its number. `%1` should always remain `%1`.
+remain unaltered in translation. These take the form of a `%` followed by a number from `1-99`, although you'll seldom see more than about 5 in practice. Please don't put any spaces between the [`%` and its number. {`%1` should always remain `%1`]},
+Windows 10 system and the DISPLAY variable will need to be set in Bash. Fortunately, there are many X servers that run on Windows; some of the more popular free ones are Xming, Cygwin X, and `vcXsrv`.
+
+I've used `Xming` and have had good luck with it in the past. It comes with a setup wizard, and I installed it on my Windows 
+Windows system and the DISPLAY variable will need to be set in **Bash**. Fortunately, there are many x  `XR`servers that run on Windows; some of the more popular free ones are Xming, `Cygwin X` and `vcXsrv`.
+
+I've used `Xming` and have had good luck with it in the past. It comes with a setup wizard, and I installed it on myWindows 11
+
 For example:
 
 ```lua
